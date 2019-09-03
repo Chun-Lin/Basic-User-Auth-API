@@ -7,3 +7,15 @@ app.get('/', (req, res) => {
 })
 
 app.listen(3000, () => console.log('app is running on port 3000'))
+
+
+
+/*
+
+/ --> res = this is working
+/singin --> POST(sending passsword within the body not on the query) = success/fail
+/register --> POST = user
+/profile/:userId --> GET = user
+/image --> PUT(user update their avatar) --> user
+
+*/
