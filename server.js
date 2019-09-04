@@ -74,7 +74,7 @@ app.get('/profile/:id', (req, res) => {
   }
 })
 
-app.post('/image', (req, res) => {
+app.put('/image', (req, res) => {
   const { id } = req.params
   let found = false
   database.users.forEach(user => {
