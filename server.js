@@ -1,10 +1,12 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const cors = require('cors')
 
 const app = express()
 
 // to parse the body info
 app.use(bodyParser.json())
+app.use(cors())
 
 app.get('/', (req, res) => {
   res.send('this is working')
