@@ -61,7 +61,7 @@ app.get('/profile/:id', (req, res) => {
 })
 
 app.put('/image', (req, res) => {
-  const { id } = req.params
+  const { id } = req.body
   db('users')
     .where('id', '=', id)
     .increment('entries', 1)
