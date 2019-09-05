@@ -25,22 +25,33 @@ app.get('/', (req, res) => {
 })
 
 app.post('/signin', (req, res) => {
-  if (
-    req.body.email === database.users[0].email &&
-    req.body.password === database.users[0].password
-  ) {
-    res.json('Successfully log in')
-  } else {
-    res.status(404).json('error logging in')
-  }
+  const { email, password } = req.body
+
+  db.select('email', 'hash')
+    .from('login')
+    .where('email', '=', email)
+    .then(data => {
+      bcrypt.compare(password, data[0].hash).then(isValid =>
+        isValid
+          ? db
+              .select('*')
+              .from('users')
+              .where('email', '=', email)
+              .then(user => res.json(user[0]))
+              .catch(err => res.status(400).json('unable to get the user'))
+          : res.status(400).json('wrong credentials'),
+      )
+    })
+    .catch(err => res.status(400).json('wrong credentials1'))
 })
 
 app.post('/register', (req, res) => {
   const { email, name, password } = req.body
   const saltRounds = 10
-  bcrypt
+  bcrypt // encryption
     .hash(password, saltRounds)
     .then(hash => {
+      // doing transaction between 'login' & 'users' table
       db.transaction(trx => {
         trx('login')
           .insert({
