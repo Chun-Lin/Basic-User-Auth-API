@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const knex = require('knex')
+const bcrypt = require('bcrypt')
 
 const db = knex({
   client: 'pg',
@@ -36,16 +37,32 @@ app.post('/signin', (req, res) => {
 
 app.post('/register', (req, res) => {
   const { email, name, password } = req.body
-
-  db('users')
-    .returning('*')
-    .insert({
-      email: email,
-      name: name,
-      joined: new Date(),
+  const saltRounds = 10
+  bcrypt
+    .hash(password, saltRounds)
+    .then(hash => {
+      db.transaction(trx => {
+        trx('login')
+          .insert({
+            hash: hash,
+            email: email,
+          })
+          .returning('email')
+          .then(loginEmail => {
+            return trx('users')
+              .insert({
+                email: loginEmail[0],
+                name: name,
+                joined: new Date(),
+              })
+              .returning('*')
+              .then(user => res.json(user[0]))
+          })
+          .then(trx.commit)
+          .catch(trx.callback)
+      }).catch(err => res.status(400).json('unable to register'))
     })
-    .then(user => res.json(user[0]))
-    .catch(err => res.status(400).json('unable to register'))
+    .catch(err => console.log(err))
 })
 
 app.get('/profile/:id', (req, res) => {
