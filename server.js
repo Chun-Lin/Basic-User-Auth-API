@@ -1,6 +1,17 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const knex = require('knex')
+
+const db = knex({
+  client: 'pg',
+  connection: {
+    host: '127.0.0.1',
+    user: 'chun-linwu',
+    password: '',
+    database: 'smart-brain',
+  },
+})
 
 const app = express()
 
@@ -11,27 +22,6 @@ app.use(cors())
 app.get('/', (req, res) => {
   res.send('this is working')
 })
-
-const database = {
-  users: [
-    {
-      id: '123',
-      name: 'Gary',
-      email: 'gary@gmail.com',
-      password: 'monkey',
-      entries: 0,
-      joined: new Date(),
-    },
-    {
-      id: '234',
-      name: 'Amber',
-      email: 'amber@gmail.com',
-      password: 'monkey2',
-      entries: 0,
-      joined: new Date(),
-    },
-  ],
-}
 
 app.post('/signin', (req, res) => {
   if (
@@ -47,16 +37,15 @@ app.post('/signin', (req, res) => {
 app.post('/register', (req, res) => {
   const { email, name, password } = req.body
 
-  database.users.push({
-    id: '123',
-    name: name,
-    email: email,
-    password: password,
-    entries: 0,
-    joined: new Date(),
-  })
-
-  res.json(database.users[database.users.length - 1])
+  db('users')
+    .returning('*')
+    .insert({
+      email: email,
+      name: name,
+      joined: new Date(),
+    })
+    .then(user => res.json(user[0]))
+    .catch(err => res.status(400).json('unable to register'))
 })
 
 app.get('/profile/:id', (req, res) => {
